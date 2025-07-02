@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Ocorrências Estudantis</title>
+    <!-- Inclui Tailwind CSS para estilização rápida e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a fonte Inter como padrão para todo o corpo do documento */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Cor de fundo suave */
+        }
+        /* Estilos adicionais para botões com efeito hover */
+        .btn-primary {
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5; /* Um tom mais escuro de índigo no hover */
+            transform: translateY(-1px); /* Leve movimento para cima */
+        }
+        .btn-secondary {
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db; /* Um tom mais escuro de cinza no hover */
+            transform: translateY(-1px);
+        }
+        /* Estilo para cards */
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave */
+        }
+        /* Estilo para campos de input e select */
+        .input-field {
+            border: 1px solid #d1d5db; /* Borda cinza suave */
+            padding: 0.75rem;
+            border-radius: 0.5rem; /* Cantos arredondados */
+            width: 100%;
+            box-sizing: border-box; /* Garante que padding não aumente a largura */
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #6366f1; /* Borda índigo no foco */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Sombra de foco */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-6 lg:p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-indigo-700 mb-8">Gestão de Ocorrências Estudantis</h1>
+
+        <!-- Seção para Adicionar Estudante -->
+        <div class="mb-8 p-6 bg-indigo-50 rounded-lg card">
+            <h2 class="text-2xl font-bold text-indigo-600 mb-4">Adicionar Novo Estudante</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="studentName" class="block text-gray-700 text-sm font-semibold mb-2">Nome do Estudante:</label>
+                    <input type="text" id="studentName" class="input-field" placeholder="Ex: Maria Silva" required>
+                </div>
+                <div>
+                    <label for="studentId" class="block text-gray-700 text-sm font-semibold mb-2">Matrícula:</label>
+                    <input type="text" id="studentId" class="input-field" placeholder="Ex: 12345" required>
+                </div>
+            </div>
+            <button onclick="addStudent()" class="mt-6 w-full md:w-auto px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg btn-primary hover:bg-indigo-700">
+                Adicionar Estudante
+            </button>
+        </div>
+
+        <!-- Seção para Registrar Ocorrência -->
+        <div class="mb-8 p-6 bg-blue-50 rounded-lg card">
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">Registrar Nova Ocorrência</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="occurrenceStudent" class="block text-gray-700 text-sm font-semibold mb-2">Estudante:</label>
+                    <select id="occurrenceStudent" class="input-field" required>
+                        <option value="">Selecione um estudante</option>
+                        <!-- Opções serão preenchidas via JavaScript -->
+                    </select>
+                </div>
+                <div>
+                    <label for="occurrenceType" class="block text-gray-700 text-sm font-semibold mb-2">Tipo de Ocorrência:</label>
+                    <select id="occurrenceType" class="input-field" required>
+                        <option value="Advertência">Advertência</option>
+                        <option value="Suspensão">Suspensão</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="occurrenceDescription" class="block text-gray-700 text-sm font-semibold mb-2">Descrição:</label>
+                <textarea id="occurrenceDescription" class="input-field h-24 resize-y" placeholder="Descreva a ocorrência..." required></textarea>
+            </div>
+            <button onclick="addOccurrence()" class="mt-4 w-full md:w-auto px-6 py-3 bg-blue-600 text-white font-bold rounded-lg btn-primary hover:bg-blue-700">
+                Registrar Ocorrência
+            </button>
+        </div>
+
+        <!-- Seção de Lista de Estudantes e Ocorrências -->
+        <div class="p-6 bg-green-50 rounded-lg card">
+            <h2 class="text-2xl font-bold text-green-600 mb-4">Estudantes e Ocorrências</h2>
+            <div id="studentList" class="space-y-6">
+                <!-- Estudantes e suas ocorrências serão listados aqui -->
+                <p class="text-gray-500 text-center" id="noStudentsMessage">Nenhum estudante cadastrado ainda.</p>
+            </div>
+        </div>
+
+        <!-- Modal para Mensagens (substitui alert()) -->
+        <div id="messageModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                <h3 id="modalTitle" class="text-xl font-bold mb-4"></h3>
+                <p id="modalMessage" class="mb-6"></p>
+                <button onclick="closeModal()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg btn-primary">Fechar</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Array para armazenar os estudantes e suas ocorrências
+        let students = [];
+
+        // Função para exibir o modal de mensagem
+        function showModal(title, message) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            document.getElementById('messageModal').classList.remove('hidden');
+        }
+
+        // Função para fechar o modal de mensagem
+        function closeModal() {
+            document.getElementById('messageModal').classList.add('hidden');
+        }
+
+        // Função para adicionar um novo estudante
+        function addStudent() {
+            const nameInput = document.getElementById('studentName');
+            const idInput = document.getElementById('studentId');
+            const name = nameInput.value.trim();
+            const id = idInput.value.trim();
+
+            if (name && id) {
+                // Verifica se a matrícula já existe
+                if (students.some(student => student.id === id)) {
+                    showModal('Erro', 'Já existe um estudante com esta matrícula.');
+                    return;
+                }
+                students.push({ name, id, occurrences: [] });
+                nameInput.value = '';
+                idInput.value = '';
+                updateStudentList();
+                updateOccurrenceStudentSelect();
+                showModal('Sucesso', `Estudante "${name}" adicionado com sucesso!`);
+            } else {
+                showModal('Erro', 'Por favor, preencha o nome e a matrícula do estudante.');
+            }
+        }
+
+        // Função para adicionar uma nova ocorrência
+        function addOccurrence() {
+            const studentSelect = document.getElementById('occurrenceStudent');
+            const typeSelect = document.getElementById('occurrenceType');
+            const descriptionInput = document.getElementById('occurrenceDescription');
+
+            const studentId = studentSelect.value;
+            const type = typeSelect.value;
+            const description = descriptionInput.value.trim();
+            const date = new Date().toLocaleDateString('pt-BR');
+
+            if (studentId && type && description) {
+                const student = students.find(s => s.id === studentId);
+                if (student) {
+                    student.occurrences.push({ type, description, date });
+                    descriptionInput.value = '';
+                    updateStudentList();
+                    showModal('Sucesso', `Ocorrência (${type}) registrada para "${student.name}"!`);
+                } else {
+                    showModal('Erro', 'Estudante não encontrado.');
+                }
+            } else {
+                showModal('Erro', 'Por favor, selecione um estudante, o tipo e preencha a descrição da ocorrência.');
+            }
+        }
+
+        // Função para atualizar a lista de estudantes exibida na interface
+        function updateStudentList() {
+            const studentListDiv = document.getElementById('studentList');
+            studentListDiv.innerHTML = ''; // Limpa a lista atual
+
+            if (students.length === 0) {
+                studentListDiv.innerHTML = '<p class="text-gray-500 text-center" id="noStudentsMessage">Nenhum estudante cadastrado ainda.</p>';
+                return;
+            }
+
+            document.getElementById('noStudentsMessage')?.remove(); // Remove a mensagem se houver estudantes
+
+            students.forEach(student => {
+                const studentCard = document.createElement('div');
+                studentCard.className = 'bg-white p-4 rounded-lg shadow-md border border-gray-200';
+                studentCard.innerHTML = `
+                    <h3 class="text-xl font-semibold text-gray-800">${student.name} <span class="text-gray-500 text-base">(${student.id})</span></h3>
+                    <div class="mt-3">
+                        <h4 class="text-lg font-medium text-gray-700 mb-2">Ocorrências:</h4>
+                        <ul class="list-disc list-inside text-gray-600 space-y-1" id="occurrences-${student.id}">
+                            ${student.occurrences.length === 0 ? '<li class="text-gray-500">Nenhuma ocorrência registrada.</li>' : ''}
+                        </ul>
+                    </div>
+                `;
+                const occurrencesList = studentCard.querySelector(`#occurrences-${student.id}`);
+                student.occurrences.forEach(occurrence => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'flex items-start';
+                    let icon = '';
+                    let textColor = '';
+                    if (occurrence.type === 'Advertência') {
+                        icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.542 2.705-1.542 3.47 0l5.58 11.25c.765 1.542-.317 3.39-2.06 3.39H4.737c-1.743 0-2.825-1.848-2.06-3.39L8.257 3.099zM10 11a1 1 0 100-2 1 1 0 000 2zm-1 4a1 1 0 102 0 1 1 0 00-2 0z" clip-rule="evenodd" />
+                            </svg>`;
+                        textColor = 'text-yellow-700';
+                    } else if (occurrence.type === 'Suspensão') {
+                        icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>`;
+                        textColor = 'text-red-700';
+                    }
+                    listItem.innerHTML = `
+                        ${icon}
+                        <div>
+                            <span class="font-medium ${textColor}">${occurrence.type}</span>: ${occurrence.description} <span class="text-gray-400 text-sm">(${occurrence.date})</span>
+                        </div>
+                    `;
+                    occurrencesList.appendChild(listItem);
+                });
+                studentListDiv.appendChild(studentCard);
+            });
+        }
+
+        // Função para atualizar as opções do select de estudantes nas ocorrências
+        function updateOccurrenceStudentSelect() {
+            const selectElement = document.getElementById('occurrenceStudent');
+            selectElement.innerHTML = '<option value="">Selecione um estudante</option>'; // Limpa e adiciona a opção padrão
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = `${student.name} (${student.id})`;
+                selectElement.appendChild(option);
+            });
+        }
+
+        // Inicializa a lista de estudantes e o select quando a página carrega
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStudentList();
+            updateOccurrenceStudentSelect();
+        });
+    </script>
+</body>
+</html>
